@@ -8,8 +8,37 @@
     console.log(error);
   }
 
+  Drupal.shareSelection.confirmLinkedin = function() {
+    $('#ss-dialog-wrapper').attr('title' , Drupal.t('Share on Linkedin'));
+    $('#ss-dialog-wrapper').text(Drupal.shareSelection.selectedText);
+    $('#ss-dialog-wrapper').dialog({
+      resizable: false,
+      height: 250,
+      width: 450,
+      modal: true,
+      draggable: false,
+      buttons: [
+        {
+          text: Drupal.t('Accept'),
+          click: function() {
+            Drupal.shareSelection.shareLinkedin();
+          }
+        },
+        {
+          text: Drupal.t('Cancel'),
+          click: function() {
+            $(this).dialog('close');
+          }
+        }
+      ],
+      create: function(event, ui) {
+        $(event.target).parent().css('position', 'fixed');
+      },
+    });
+  }
+
   Drupal.shareSelection.shareLinkedin = function() {
-    // Build the JSON payload containing the content to be shared
+    // Build the JSON payload containing the content to be shared.
     var payload = {
       "comment": Drupal.shareSelection.selectedText.toString(),
       "visibility": {
@@ -27,7 +56,7 @@
   Drupal.shareSelection.onLoadLinkedin = function() {
     $('#share-selection-linkedin').mousedown(function(e) {
       if (Drupal.shareSelection.selectedText) {
-        IN.User.authorize(Drupal.shareSelection.shareLinkedin);
+        IN.User.authorize(Drupal.shareSelection.confirmLinkedin);
       };
     });
   }

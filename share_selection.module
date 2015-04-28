@@ -79,6 +79,7 @@ function share_selection_preprocess_page(&$variables) {
   if ($share_selection) {
     // Add js and css
     drupal_add_library('system', 'ui.position');
+    drupal_add_library('system', 'ui.dialog');
     drupal_add_js(drupal_get_path('module', 'share_selection') . '/js/share-selection.js');
     drupal_add_css(drupal_get_path('module', 'share_selection') . '/css/share-selection.css');
 
@@ -87,6 +88,14 @@ function share_selection_preprocess_page(&$variables) {
     $services_settings['custom'] = variable_get('share_selection_custom', array());
     $services = share_selection_get_links($services_settings['show']);
     $services_weight = array();
+    // Render message wrapper.
+    $share_selection_message_wrapper = array(
+      '#type' => 'container',
+      '#attributes' => array(
+        'id' => 'ss-dialog-wrapper',
+      ),
+    );
+    $variables['page']['content']['share_selection_message_wrapper'] = $share_selection_message_wrapper;
     // Render links wrapper.
     $share_selection_wrapper = array(
       '#type' => 'container',

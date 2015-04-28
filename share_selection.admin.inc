@@ -74,11 +74,6 @@ function share_selection_config_form($form, &$form_state) {
     '#default_value' => variable_get('share_selection_paths', $exclude_paths),
     '#description' => t("Specify pages by using their paths. Enter one path per line. The '*' character is a wildcard. Example paths are %blog for the blog page and %blog-wildcard for every personal blog. %front is the front page.", array('%blog' => 'blog', '%blog-wildcard' => 'blog/*', '%front' => '<front>')),
   );
-  $form['share_selection_images_replacement_path'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Images replacement path'),
-    '#default_value' => variable_get('share_selection_images_replacement_path', 'sites/default/files/share-selection'),
-  );
   // Display options.
   $display_options = array(
     'image' => t('Only image'),
