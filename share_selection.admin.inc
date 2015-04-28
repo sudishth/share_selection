@@ -74,6 +74,20 @@ function share_selection_config_form($form, &$form_state) {
     '#default_value' => variable_get('share_selection_paths', $exclude_paths),
     '#description' => t("Specify pages by using their paths. Enter one path per line. The '*' character is a wildcard. Example paths are %blog for the blog page and %blog-wildcard for every personal blog. %front is the front page.", array('%blog' => 'blog', '%blog-wildcard' => 'blog/*', '%front' => '<front>')),
   );
+  // Exclude roles.
+  $user_roles = user_roles();
+  $form['exclude_roles'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#title' => t('Exclude Roles'),
+  );
+  $form['exclude_roles']['share_selection_exclude_roles'] = array(
+    '#type' => 'checkboxes',
+    '#options' => $user_roles,
+    '#description' => t("The selected roles won't see the Share Selection buttons."),
+    '#default_value' => variable_get('share_selection_exclude_roles', array()),
+  );
   // Display options.
   $display_options = array(
     'image' => t('Only image'),

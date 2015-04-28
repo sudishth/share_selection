@@ -51,26 +51,43 @@ function share_selection_hook_info() {
  * Implements hook_preprocess_page().
  */
 function share_selection_preprocess_page(&$variables) {
+  global $user;
   $share_selection = FALSE;
-  $exclude_paths = variable_get('share_selection_exclude_paths', 'admin/*');
-  // Finding where to show share selection.
-  if (variable_get('share_selection_paths_or_content', 'paths') == 'paths') {
-    if (variable_get('share_selection_paths_behavior', 0) && drupal_match_path(current_path(), $exclude_paths)) {
-      $share_selection = TRUE;
-    }
-    if (!variable_get('share_selection_paths_behavior', 0) && !drupal_match_path(current_path(), $exclude_paths)) {
-      $share_selection = TRUE;
+  // Excluding roles.
+  $user_excluded_by_role = FALSE;
+  $excluded_roles = variable_get('share_selection_exclude_roles', array());
+  $excluded_roles = array_filter($excluded_roles);
+  if (!empty($excluded_roles)) {
+    foreach ($user->roles as $rid => $role) {
+      if (in_array($rid, $excluded_roles)) {
+        $user_excluded_by_role = TRUE;
+        break;
+      }
     }
   }
-  else {
-    $content_types_show = variable_get('share_selection_content_types', array());
-    if (isset($variables['node'])) {
-      $node = $variables['node'];
-      if (empty($content_types_show)) {
+
+  // If excluded by role we don't need to explore visibility options.
+  if (!$user_excluded_by_role) {
+    $exclude_paths = variable_get('share_selection_exclude_paths', 'admin/*');
+    // Finding where to show share selection.
+    if (variable_get('share_selection_paths_or_content', 'paths') == 'paths') {
+      if (variable_get('share_selection_paths_behavior', 0) && drupal_match_path(current_path(), $exclude_paths)) {
         $share_selection = TRUE;
       }
-      elseif (in_array($node->type, $content_types_show)) {
+      if (!variable_get('share_selection_paths_behavior', 0) && !drupal_match_path(current_path(), $exclude_paths)) {
         $share_selection = TRUE;
+      }
+    }
+    else {
+      $content_types_show = variable_get('share_selection_content_types', array());
+      if (isset($variables['node'])) {
+        $node = $variables['node'];
+        if (empty($content_types_show)) {
+          $share_selection = TRUE;
+        }
+        elseif (in_array($node->type, $content_types_show)) {
+          $share_selection = TRUE;
+        }
       }
     }
   }
