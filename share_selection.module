@@ -322,14 +322,14 @@ function share_selection_share_selection_links() {
 /**
  * Funtion to convert string to Camel Case.
  * @param  string  $str       String to be converted
- * @param  array   $noStrip   Characters to preserve
+ * @param  array   $no_strip   Characters to preserve
  * @return string             Converted string
  */
-function share_selection_camel_case($str, $noStrip = []) {
-  // non-alpha and non-numeric characters become spaces
-  $str = preg_replace('/[^a-z0-9' . implode("", $noStrip) . ']+/i', ' ', $str);
+function share_selection_camel_case($str, $no_strip = array()) {
+  // Non-alpha and non-numeric characters become spaces.
+  $str = preg_replace('/[^a-z0-9' . implode("", $no_strip) . ']+/i', ' ', $str);
   $str = trim($str);
-  // uppercase the first character of each word
+  // Uppercase the first character of each word.
   $str = ucwords($str);
   $str = str_replace(" ", "", $str);
   $str = lcfirst($str);
