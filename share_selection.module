@@ -66,8 +66,15 @@ function share_selection_preprocess_page(&$variables) {
     }
   }
 
-  // If excluded by role we don't need to explore visibility options.
-  if (!$user_excluded_by_role) {
+  // Avoid process all things if there is no selected networks to show.
+  $there_is_networks = FALSE;
+  $services_settings['show'] = array_filter(variable_get('share_selection_show', array()));
+  if (!empty($services_settings['show'])) {
+    $there_is_networks = TRUE;
+  }
+
+  // If excluded by role or there is no selected networks, we don't need to explore visibility options.
+  if (!$user_excluded_by_role && $there_is_networks) {
     $exclude_paths = variable_get('share_selection_exclude_paths', 'admin/*');
     // Finding where to show share selection.
     if (variable_get('share_selection_paths_or_content', 'paths') == 'paths') {
@@ -100,7 +107,6 @@ function share_selection_preprocess_page(&$variables) {
     drupal_add_js(drupal_get_path('module', 'share_selection') . '/js/share-selection.js');
     drupal_add_css(drupal_get_path('module', 'share_selection') . '/css/share-selection.css');
 
-    $services_settings['show'] = array_filter(variable_get('share_selection_show', array()));
     $services_settings['weight'] = variable_get('share_selection_weight', array());
     $services_settings['custom'] = variable_get('share_selection_custom', array());
     $services = share_selection_get_links($services_settings['show']);
