@@ -21,7 +21,7 @@ function hook_share_selection_links() {
     // The service icon. it will search on /images folder inside your module.
     'icon' => 'myservice.png',
     // JavaScript to add when this link is processed.
-    'javascript' => drupal_get_path('module', 'myservice') .'/myservice.js',
+    'js' => drupal_get_path('module', 'myservice') .'/myservice.js',
     // External javaScript to add when this link is processed like services APIs.
     'external_js' => 'https://apis.google.com/js/client:plusone.js',
     // CSS to add when this link is processed, can be a string or an array.
