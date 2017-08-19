@@ -1,0 +1,5 @@
+name: Share Selection
+type: module
+description: 'Share text selections on social networks.'
+core: 8.x
+configure: share_selection.configuration_form

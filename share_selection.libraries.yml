@@ -1,0 +1,15 @@
+drupal.shareselection:
+  version: VERSION
+  js:
+    js/share-selection.js: { weight: -2 }
+    js/ss-google-plus.js: { weight: -2 }
+    js/ss-linkedin.js: { weight: -2 }
+    js/ss-twitter.js: { weight: -2 }
+  css:
+    css/share-selection.css : {weight: -1}
+
+  dependencies:
+    - core/drupal.dialog
+    - core/drupal.ajax
+    - core/drupalSettings
+    - core/ui.position

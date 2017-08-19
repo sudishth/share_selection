@@ -26,7 +26,7 @@ function share_selection_config_form($form, &$form_state) {
     '#options' => $share_by,
     '#title' => t('Show by paths or content types'),
     '#description' => t('Select how you want to control the places to share selection'),
-    '#default_value' => variable_get('share_selection_paths_or_content', 'paths'),
+    //'#default_value' => variable_get('share_selection_paths_or_content', 'paths'),
   );
   // Share by content options.
   $form['by_content'] = array(
@@ -45,7 +45,7 @@ function share_selection_config_form($form, &$form_state) {
     '#options' => $content_types_options,
     '#title' => t('Content types'),
     '#description' => t('Content types where links will be shown'),
-    '#default_value' => variable_get('share_selection_content_types', $content_types_options_default),
+    //'#default_value' => variable_get('share_selection_content_types', $content_types_options_default),
   );
   // Share by paths options.
   $paths_behaviors = array(
@@ -67,11 +67,11 @@ function share_selection_config_form($form, &$form_state) {
     '#type' => 'radios',
     '#options' => $paths_behaviors,
     '#title' => t('Show on specific pages'),
-    '#default_value' => variable_get('share_selection_paths_behavior', 0),
+   // '#default_value' => variable_get('share_selection_paths_behavior', 0),
   );
   $form['by_paths']['share_selection_paths'] = array(
     '#type' => 'textarea',
-    '#default_value' => variable_get('share_selection_paths', $exclude_paths),
+    //'#default_value' => variable_get('share_selection_paths', $exclude_paths),
     '#description' => t("Specify pages by using their paths. Enter one path per line. The '*' character is a wildcard. Example paths are %blog for the blog page and %blog-wildcard for every personal blog. %front is the front page.", array('%blog' => 'blog', '%blog-wildcard' => 'blog/*', '%front' => '<front>')),
   );
   // Exclude roles.
@@ -86,7 +86,7 @@ function share_selection_config_form($form, &$form_state) {
     '#type' => 'checkboxes',
     '#options' => $user_roles,
     '#description' => t("The selected roles won't see the Share Selection buttons."),
-    '#default_value' => variable_get('share_selection_exclude_roles', array()),
+    //'#default_value' => variable_get('share_selection_exclude_roles', array()),
   );
   // Display options.
   $display_options = array(
@@ -103,13 +103,13 @@ function share_selection_config_form($form, &$form_state) {
   $form['display_options']['share_selection_images_replacement_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Images replacement path'),
-    '#default_value' => variable_get('share_selection_images_replacement_path', 'sites/default/files/share-selection'),
+    //'#default_value' => variable_get('share_selection_images_replacement_path', 'sites/default/files/share-selection'),
   );
   $form['display_options']['share_selection_display_style'] = array(
     '#type' => 'select',
     '#title' => t('Style'),
     '#options' => $display_options,
-    '#default_value' => variable_get('share_selection_display_style', 'image'),
+    //'#default_value' => variable_get('share_selection_display_style', 'image'),
   );
   return system_settings_form($form);
 }
@@ -121,9 +121,9 @@ function share_selection_config_services_form() {
   $settings = array();
 
   $services = share_selection_get_links(NULL, TRUE);
-  $settings['show'] = variable_get('share_selection_show', NULL);
-  $settings['weight'] = variable_get('share_selection_weight', NULL);
-  $settings['custom'] = variable_get('share_selection_custom', NULL);
+  //$settings['show'] = variable_get('share_selection_show', NULL);
+  //$settings['weight'] = variable_get('share_selection_weight', NULL);
+  //$settings['custom'] = variable_get('share_selection_custom', NULL);
 
   $form['share_selection'] = array('#theme' => 'share_selection_services_drag_table');
   $form['share_selection']['share_selection_show'] = array('#tree' => TRUE);
