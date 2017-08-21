@@ -8,65 +8,59 @@ use Drupal\Component\Utility\Html;
  */
 function share_selection_preprocess_page(&$variables)
 {
-  global $user;
+  $user = Drupal::currentUser();
+  $share_selection_settings = \Drupal::config('share_selection.settings');
   $share_selection = FALSE;
   // Excluding roles.
   $user_excluded_by_role = FALSE;
-  // $excluded_roles = variable_get('share_selection_exclude_roles', array());
-//  $excluded_roles = array_filter($excluded_roles);
+  $excluded_roles = $share_selection_settings->get('share_selection_exclude_roles') ?: [];
+  $excluded_roles = array_filter($excluded_roles);
   if (!empty($excluded_roles)) {
-    foreach ($user->roles as $rid => $role) {
-      if (in_array($rid, $excluded_roles)) {
-        $user_excluded_by_role = TRUE;
-        //   break;
-      }
+    if (array_intersect($user->getRoles(), $excluded_roles)) {
+      $user_excluded_by_role = TRUE;
     }
   }
 
   // Avoid process all things if there is no selected networks to show.
   $there_is_networks = FALSE;
   $there_is_networks = TRUE;
-  //$services_settings['show'] = array_filter(variable_get('share_selection_show', array()));
-  $services_settings['show'] = ['linkedin', 'twitter'];
+  $services_settings['show'] = array_filter($share_selection_settings->get('share_selection_show'));
   if (!empty($services_settings['show'])) {
     $there_is_networks = TRUE;
   }
 
   // If excluded by role or there is no selected networks, we don't need to explore visibility options.
   if (!$user_excluded_by_role && $there_is_networks) {
-    //$exclude_paths = variable_get('share_selection_exclude_paths', 'admin/*');
-    $exclude_paths = '';
+    $exclude_paths = $share_selection_settings->get('share_selection_exclude_paths') ?: 'admin/*';
     // Finding where to show share selection.
-//    if (variable_get('share_selection_paths_or_content', 'paths') == 'paths') {
-//      if (variable_get('share_selection_paths_behavior', 0) && drupal_match_path(current_path(), $exclude_paths)) {
-//        $share_selection = TRUE;
-//      }
-//      if (!variable_get('share_selection_paths_behavior', 0) && !drupal_match_path(current_path(), $exclude_paths)) {
-//        $share_selection = TRUE;
-//      }
-//    }
-//    else {
-//      $content_types_show = variable_get('share_selection_content_types', array());
-//      if (isset($variables['node'])) {
-//        $node = $variables['node'];
-//        if (empty($content_types_show)) {
-//          $share_selection = TRUE;
-//        }
-//        elseif (in_array($node->type, $content_types_show)) {
-//          $share_selection = TRUE;
-//        }
-//      }
-//    }
-//  }
-    $share_selection = TRUE;
+    if ($share_selection_settings->get('share_selection_paths_or_content') == 'paths') {
+      if ($share_selection_settings->get('share_selection_paths_behavior') && \Drupal::service('path.matcher')->matchPath(\Drupal::service('path.current')->getPath(), $exclude_paths)) {
+        $share_selection = TRUE;
+      }
+      if (!$share_selection_settings->get('share_selection_paths_behavior') && !\Drupal::service('path.matcher')->matchPath(\Drupal::service('path.current')->getPath(), $exclude_paths)) {
+        $share_selection = TRUE;
+      }
+    }
+    else {
+      $content_types_show = $share_selection_settings->get('share_selection_content_types') ?: [];
+      if (isset($variables['node'])) {
+        $node = $variables['node'];
+        if (empty($content_types_show)) {
+          $share_selection = TRUE;
+        }
+        elseif (in_array($node->getType(), $content_types_show)) {
+          $share_selection = TRUE;
+        }
+      }
+    }
+
     // If share selection on this page.
     if ($share_selection) {
       // Add js and css
       $variables['#attached']['library'][] =  'share_selection/drupal.shareselection';
 
-
-      $services_settings['weight'] = [];//variable_get('share_selection_weight', array());
-      $services_settings['custom'] = [];//variable_get('share_selection_custom', array());
+      $services_settings['weight'] = $share_selection_settings->get('share_selection_weight') ?: [];
+      $services_settings['custom'] = $share_selection_settings->get('share_selection_custom') ?: [];
       $services = share_selection_get_links($services_settings['show']);
       $services_weight = array();
       // Render message wrapper.
@@ -92,9 +86,8 @@ function share_selection_preprocess_page(&$variables)
       array_multisort($services_weight, SORT_ASC, $services);
       // Render links.
       foreach ($services as $service_id => $service) {
-        // $display_option = variable_get('share_selection_display_style', 'image');
-        $display_option = 'image';
-        $button_content = array();
+        $display_option = $share_selection_settings->get('share_selection_display_style') ?: 'image';
+        $button_content = [];
         switch ($display_option) {
           case 'image':
             $button_content = share_selection_get_service_icon($service);
@@ -129,7 +122,7 @@ function share_selection_preprocess_page(&$variables)
           $module_camel_case = share_selection_camel_case($service['module']);
           foreach ($service['custom_options'] as $option_key => $option_label) {
             $option_camel_case = share_selection_camel_case($service_id . ' ' . $option_key);
-            $service_settings[$module_camel_case][$option_camel_case] = token_replace($services_settings['custom'][$service_id][$option_key], (isset($variables['node'])) ? array($variables['node']) : array());
+            $service_settings[$module_camel_case][$option_camel_case] = Drupal::token()->replace($services_settings['custom'][$service_id][$option_key], (isset($variables['node'])) ? array($variables['node']) : array());
           }
           //drupal_add_js($service_settings, 'setting');
         }
@@ -159,7 +152,28 @@ function share_selection_theme() {
  */
 function share_selection_get_links($services = NULL, $reset = FALSE) {
   $links = &drupal_static(__FUNCTION__, NULL);
+  if (!isset($links) || $reset) {
+    // Retrieve the links from the cache.
+    if (!$reset && ($cache = \Drupal::cache()->get('share_selection_get_links')) && !empty($cache->data)) {
+      $links = $cache->data;
+    }
+    else {
+      // Create the repository of links.
+      $links = array();
+      foreach (\Drupal::moduleHandler()->getImplementations('share_selection_links') as $module) {
+        $module_links = \Drupal::moduleHandler()->invoke($module, 'share_selection_links');
+        foreach ($module_links as $name => $link) {
+          $link['module'] = $module;
+          $links[$name] = $link;
+        }
+      }
+      // Allow alteration of the links.
+      \Drupal::moduleHandler()->alter('share_selection_links', $links);
 
+      // Save the links in the cache.
+      \Drupal::cache()->set('share_selection_get_links', $links);
+    }
+  }
 
   // If desired, return only the wanted services.
   if (isset($services)) {
@@ -172,7 +186,7 @@ function share_selection_get_links($services = NULL, $reset = FALSE) {
     $services = array_merge($services, array_intersect_key($links, $services));
 
     // Remove the unknown services.
-    $services = ['linkedin','twitter'];
+    $services = share_selection_array_filter($services);
   }
 
   return isset($services) ? $services : $links;
@@ -207,12 +221,13 @@ function share_selection_get_service_icon($service) {
   if (file_exists(SHARE_SELECTION_ICONS_FOLDER . DIRECTORY_SEPARATOR . $service['icon'])) {
     $icon_path = '/sites/default/files/share-selection'  . DIRECTORY_SEPARATOR . $service['icon'];
   }
-  $icon_path = '/sites/default/files/twitter.png';
+//  $icon_path = '/sites/default/files/twitter.png';
   $service_icon = array(
     '#theme' => 'image',
     '#path' => $icon_path,
   );
-  return \Drupal::service('renderer')->renderPlain($service_icon);
+
+  return $icon = '<img src="'. base_path() . $icon_path .' ">';
 }
 
 /**
@@ -279,5 +294,5 @@ function share_selection_camel_case($str, $no_strip = array()) {
   $str = ucwords($str);
   $str = str_replace(" ", "", $str);
   $str = lcfirst($str);
-  return \Drupal::service('renderer')->renderPlain($str);
+  return $str;
 }
