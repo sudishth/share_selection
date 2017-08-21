@@ -62,6 +62,9 @@ function share_selection_preprocess_page(&$variables)
     // If share selection on this page.
     if ($share_selection) {
       // Add js and css
+      $variables['#attached']['library'][] =  'share_selection/drupal.shareselection';
+
+
       $services_settings['weight'] = [];//variable_get('share_selection_weight', array());
       $services_settings['custom'] = [];//variable_get('share_selection_custom', array());
       $services = share_selection_get_links($services_settings['show']);
@@ -204,7 +207,7 @@ function share_selection_get_service_icon($service) {
   if (file_exists(SHARE_SELECTION_ICONS_FOLDER . DIRECTORY_SEPARATOR . $service['icon'])) {
     $icon_path = '/sites/default/files/share-selection'  . DIRECTORY_SEPARATOR . $service['icon'];
   }
-  $icon_path = '/images/twitter.png';
+  $icon_path = '/sites/default/files/twitter.png';
   $service_icon = array(
     '#theme' => 'image',
     '#path' => $icon_path,
